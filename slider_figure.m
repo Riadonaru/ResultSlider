@@ -1,6 +1,4 @@
-function plot_slider_demo()   
-    load("MultiScan_20260809_154904.mat");
-
+function slider_figure(sf, ef, np)   
     % 1. Create a UI figure window
     fig = uifigure('Name', 'Intensity along the Slit', 'Position', [100, 100, 600, 400]);
 
@@ -17,7 +15,7 @@ function plot_slider_demo()
     % Initial data setup
     x = linspace(1, 2);
     y = sin(x);
-    freq = 9.0006; % Initial frequency
+    freq = sf; % Initial frequency
     
     % Initial plot
     p = plot(ax, x, y, 'LineWidth', 2);
@@ -26,7 +24,6 @@ function plot_slider_demo()
     title(ax, ['Frequency: ', num2str(freq)]);
 
     % 3. Create a UI slider component
-    % Create a text input field (defaults to text format)
     txtField = uieditfield(g, 'text', ...
         'Position', [100, 200, 150, 30], ...
         'Value', num2str(freq), ...
@@ -34,19 +31,17 @@ function plot_slider_demo()
     txtField.Layout.Row = 2;
     txtField.Layout.Column =2;
 
-    % Limits set from 1 to 10, starting at value 1
     sld = uislider(g, ...
         'Position', [100, 50, 450, 3], ...
         'Limits', [1, np], ...
         'Value', freq, ...
-        'ValueChangedFcn', @(sld, event) sliderUpdate(sld, txtField, p, x, ax));
+        'ValueChangedFcn', @(sld, event) sliderUpdate(sld, txtField, p, x, ax, sf, ef, np));
     sld.Layout.Row = 2;
     sld.Layout.Column = 1;
 end
 
 % 4. Callback function to update the plot when the slider moves
-function sliderUpdate(sld, txtField, p, x, ax)
-    load("MultiScan_20260809_154904.mat");
+function sliderUpdate(sld, txtField, p, x, ax, sf, ef, np)
     index = round(sld.Value) - 1; % Get current slider value
     freq = sf + index * (ef - sf) / (np - 1);
     p.YData = sin(freq * x);  % Update plot y-data
