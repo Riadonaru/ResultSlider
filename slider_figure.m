@@ -1,6 +1,6 @@
 function slider_figure(data, sf, ef, np, stepSize, numMeasurements)   
     HALF_CM = 671;
-    INITIAL_FREQUENCY = 9.0006;
+    INITIAL_FREQUENCY = 9.0036;
     INITIAL_BATCHES = [1 2];
   
     fig_h = 800;
@@ -8,16 +8,9 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     
     % 1. Create a UI figure window
     fig = uifigure('Name', 'Intensity along the Slit', 'Position', [100, 100, fig_w, fig_h]);
-    
-    % 2. Create a tab group inside the figure
-    tgroup = uitabgroup(fig, 'Units', 'normalized', 'Position', [0 0 1 1]);
-
-    % 3. Create individual tabs within the tab group
-    tab1 = uitab(tgroup, 'Title', 'Graph');
-    tab2 = uitab(tgroup, 'Title', 'Batch Control');
 
     % Create a 1x1 grid layout that fills the entire figure
-    g = uigridlayout(tab1, [2, 2]);
+    g = uigridlayout(fig, [2, 2]);
     g.RowHeight = {'10x', '1x'};
     g.ColumnWidth = {'5x', '1x'};
 
@@ -54,41 +47,23 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
         'Position', [100, 50, 450, 3], ...
         'Limits', [1, np], ...
         'Value', INITIAL_FREQUENCY, ...
-        'ValueChangedFcn', @(sld, event) sliderUpdate(sld, txtField, p, x, ax, sf, ef, np, data));
+        'ValueChangedFcn', @(sld, event) sliderUpdate(sld, txtField, p, ax, sf, ef, np, data, INITIAL_BATCHES));
     sld.Layout.Row = 2;
     sld.Layout.Column = 1;
-
-    for num = 1:length(data)
-        if any(INITIAL_BATCHES(:) == num)
-            uicontrol('Parent', tab2, ...          % Place it in tab1 (or fig)
-            'Style', 'checkbox', ...     % Set the type to checkbox
-            'String', ['Batch', num2str(num)], ...   % The text next to the box
-            'Value', 1, ...              % 0 = unchecked, 1 = checked
-            'Position', [50 fig_h - (100 + 25*num) 100 20], ... % [left bottom width height] in pixels
-            'Callback', @(cb, event) checkboxUpdate(cb)); % Assigns the handler
-        else
-            uicontrol('Parent', tab2, ...          % Place it in tab1 (or fig)
-            'Style', 'checkbox', ...     % Set the type to checkbox
-            'String', ['Batch', num2str(num)], ...   % The text next to the box
-            'Value', 0, ...              % 0 = unchecked, 1 = checked
-            'Position', [50 fig_h - (100 + 25*num) 100 20], ... % [left bottom width height] in pixels
-            'Callback', @(cb, event) checkboxUpdate(cb)); % Assigns the handler
-        end
-    end
 end
 
+function updatePlot(p, data, index, INITIAL_BATCHES)
+    y = extractHeights(data, INITIAL_BATCHES, index);  % Update plot y-data
+    for i = 1:width(y)
+        p(i).YData = y(:, i); 
+    end
+    drawnow;
+end
 
-function sliderUpdate(sld, txtField, p, ax, sf, ef, np, data)
-    y_vals = data{1};
-    index = sld.Value - 1; % Get current slider value
-    freq = sf + index * (ef - sf) / (np - 1);
-    p.YData = y_vals(:, index);  % Update plot y-data
+function sliderUpdate(sld, txtField, p, ax, sf, ef, np, data, INITIAL_BATCHES)
+    index = sld.Value; % Get current slider value
+    freq = sf + (index - 1) * (ef - sf) / (np - 1);
     title(ax, ['Frequency: ', num2str(freq)]); % Update title
     txtField.Value = num2str(freq);
-end
-
-
-
-function checkboxUpdate(cb)
-    disp(cb.String);
+    updatePlot(p, data, index, INITIAL_BATCHES);
 end
