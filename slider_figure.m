@@ -47,6 +47,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
         'Position', [100, 50, 450, 3], ...
         'Limits', [1, np], ...
         'Value', INITIAL_FREQUENCY, ...
+        'Step', 1, ...
         'ValueChangedFcn', @(sld, event) sliderUpdate(sld, txtField, p, ax, sf, ef, np, data, INITIAL_BATCHES));
     sld.Layout.Row = 2;
     sld.Layout.Column = 1;
@@ -61,7 +62,7 @@ function updatePlot(p, data, index, INITIAL_BATCHES)
 end
 
 function sliderUpdate(sld, txtField, p, ax, sf, ef, np, data, INITIAL_BATCHES)
-    index = sld.Value; % Get current slider value
+    index = sld.Value; % Get current slider value\
     freq = sf + (index - 1) * (ef - sf) / (np - 1);
     title(ax, ['Frequency: ', num2str(freq)]); % Update title
     txtField.Value = num2str(freq);
