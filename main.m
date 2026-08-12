@@ -6,8 +6,8 @@ load("MultiScan_20260812_020813.mat");
 HALF_CM = 671; % Conversion constant [MotorStep --> cm]
 INITIAL_FREQUENCY = 9.0036; % Slider starting position for Intensity along the slit
 INITIAL_POINT = 20; % Slider starting position for Spectrum at point
-INITIAL_BATCHES = [1 5]; % Batches to show on plot
-SPECTRUM = 0; % 1 = Spectrum at point, 0 = Intensity along the slit
+INITIAL_BATCHES = [1 2 5]; % Batches to show on plot
+SPECTRUM = 1; % 1 = Spectrum at point, 0 = Intensity along the slit
 
 data = extract_data(sf, ef, np, Y_all);
 slider_figure(data, sf, ef, np, stepSize, numMeasurements);

@@ -8,8 +8,15 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     % 1. Create a UI figure window
     fig = uifigure('Name', 'Intensity along the Slit', 'Position', [100, 100, fig_w, fig_h]);
 
-    % Create a 1x1 grid layout that fills the entire figure
-    g = uigridlayout(fig, [1, 1]);
+    % 2. Create the tab group as a child of the figure
+    tgroup = uitabgroup(fig, 'Units', 'Normalized', 'Position', [0 0 1 1]);
+
+    % 3. Create the individual tabs as children of the tab group
+    tab1 = uitab(tgroup, 'Title', 'Data View');
+    tab2 = uitab(tgroup, 'Title', 'Settings');
+
+    %% ==================== TAB 1 ====================
+    g = uigridlayout(tab1, [1, 1]);
     g.RowHeight = {'10x', '1x'};
     g.ColumnWidth = {'1x'};
 
@@ -17,7 +24,49 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     ax = uiaxes(g);
     ax.Layout.Row = 1;
     ax.Layout.Column = 1;
+
+    %% ==================== TAB 2 ====================
     
+    uilabel('Text', 'Settings', ...
+            'Parent', tab2, ...
+            'FontSize', 40, ...
+            'FontWeight', 'Bold', ...
+            'Position', [50 fig_h - 100 200 50]);
+
+    uilabel('Text', 'Plot Settings', ...
+        'Parent', tab2, ...
+        'FontSize', 16, ...
+        'FontWeight', 'Bold', ...
+        'Position', [50 fig_h - 180 200 50]);
+
+    uicheckbox('Text', '  Intensity along the slit', ...
+        'Parent', tab2, ...
+        'Value', ~SPECTRUM, ...
+        'Position', [50 fig_h - 230 200 50]);
+
+    uicheckbox('Text', '  Spectrum at point', ...
+        'Parent', tab2, ...
+        'Value', SPECTRUM, ...
+        'Position', [50 fig_h - 260 200 50]);
+
+    uilabel('Text', 'Available Batches', ...
+        'Parent', tab2, ...
+        'FontSize', 16, ...
+        'FontWeight', 'Bold', ...
+        'Position', [550 fig_h - 180 200 50]);
+    
+    for num = 1:length(data)
+        value = 0;
+        if any(INITIAL_BATCHES == num)
+            value = 1;
+        end
+        uicheckbox('Text', ['  Batch' num2str(num)], ...
+            'Parent', tab2, ...
+            'Value', value, ...
+            'Position', [550 fig_h - (200+30*num) 200 50]);
+    end
+
+    %% ==================== Data View INIT ====================
     % Infer tube length and array index from experiment parameters
     diff = (stepSize/HALF_CM) * 0.5; % Conversion stepSize ---> [cm]
     tubeLength = (numMeasurements - 1) * diff;
@@ -56,6 +105,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     sld.Layout.Row = 2;
     sld.Layout.Column = 1;
 end
+
 
 function updatePlot(p, data, index, INITIAL_BATCHES, SPECTRUM)
     if SPECTRUM == 1
