@@ -1,7 +1,7 @@
-function y = extractHeights(data, batches, index)
-    y = zeros(height(data{1}), length(batches));
-    for batch = batches
-        y_vals = data{batch};
-        y(:, batch) = y_vals(:, index);
+function y = extractHeights(Y_all, batches, index)
+    y = zeros(height(Y_all{1}), length(batches));
+    for i = 1:length(batches)
+        y_vals = Y_all{batches(i)};
+        y(:, i) = y_vals(:, index);
     end
 end

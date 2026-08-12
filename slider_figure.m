@@ -2,8 +2,8 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     HALF_CM = 671;
     INITIAL_FREQUENCY = 9.0036;
     INITIAL_POINT = 20;
-    INITIAL_BATCHES = [1 2];
     SPECTRUM = 1;
+    INITIAL_BATCHES = [1 2 3 4 5];
   
     fig_h = 800;
     fig_w = 1200;
