@@ -23,10 +23,9 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     tubeLength = (numMeasurements - 1) * diff;
 
     freq_spacing = (ef - sf) / (np-1);
-    index = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing);
-
     % Initial data setup
     if SPECTRUM == 1
+        index = 2 * INITIAL_POINT
         x = linspace(sf, ef, np);
         y = extractWidths(data, INITIAL_BATCHES, index);
         x_lim = [sf ef];
@@ -34,6 +33,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
         slider_step = 0.5;
         slider_init = INITIAL_POINT;
     else
+        index = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing);
         x = linspace(0, tubeLength, numMeasurements);
         y = extractHeights(data, INITIAL_BATCHES, index);
         x_lim = [0 tubeLength];
@@ -46,6 +46,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     p = plot(ax, x, y, 'LineWidth', 2);
     xlim(ax, x_lim);
     title(ax, ['Frequency: ', num2str(slider_init)]);
+    
 
     sld = uislider(g, ...
         'Position', [100, 50, 450, 3], ...
