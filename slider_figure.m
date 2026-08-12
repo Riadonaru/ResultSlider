@@ -1,10 +1,7 @@
 function slider_figure(data, sf, ef, np, stepSize, numMeasurements)   
-    HALF_CM = 671;
-    INITIAL_FREQUENCY = 9.0036;
-    INITIAL_POINT = 20;
-    SPECTRUM = 1;
-    INITIAL_BATCHES = [1 2 3 4 5];
-  
+    
+    global HALF_CM INITIAL_FREQUENCY INITIAL_POINT INITIAL_BATCHES SPECTRUM;
+
     fig_h = 800;
     fig_w = 1200;
     
@@ -32,12 +29,14 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     if SPECTRUM == 1
         x = linspace(sf, ef, np);
         y = extractWidths(data, INITIAL_BATCHES, index);
+        x_lim = [sf ef];
         slider_lim = [0, tubeLength];
         slider_step = 0.5;
         slider_init = INITIAL_POINT;
     else
         x = linspace(0, tubeLength, numMeasurements);
         y = extractHeights(data, INITIAL_BATCHES, index);
+        x_lim = [0 tubeLength];
         slider_lim = [1, np];
         slider_step = 1;
         slider_init = INITIAL_FREQUENCY;
@@ -45,6 +44,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
 
     % Initial plot
     p = plot(ax, x, y, 'LineWidth', 2);
+    xlim(ax, x_lim);
     title(ax, ['Frequency: ', num2str(slider_init)]);
 
     sld = uislider(g, ...
