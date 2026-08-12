@@ -1,6 +1,8 @@
 function slider_figure(data, sf, ef, np, stepSize, numMeasurements)   
     HALF_CM = 671;
     INITIAL_FREQUENCY = 9.0036;
+    INITIAL_POINT = 20;
+    SPECTRUM = 1;
     INITIAL_BATCHES = [1 2 3 4 5];
   
     fig_h = 800;
@@ -10,14 +12,14 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     fig = uifigure('Name', 'Intensity along the Slit', 'Position', [100, 100, fig_w, fig_h]);
 
     % Create a 1x1 grid layout that fills the entire figure
-    g = uigridlayout(fig, [2, 2]);
+    g = uigridlayout(fig, [1, 1]);
     g.RowHeight = {'10x', '1x'};
-    g.ColumnWidth = {'5x', '1x'};
+    g.ColumnWidth = {'1x'};
 
     % Create axes inside the grid and center it
     ax = uiaxes(g);
     ax.Layout.Row = 1;
-    ax.Layout.Column = [1, 2];
+    ax.Layout.Column = 1;
     
     % Infer tube length and array index from experiment parameters
     diff = (stepSize/HALF_CM) * 0.5; % Conversion stepSize ---> [cm]
@@ -27,44 +29,55 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     index = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing);
 
     % Initial data setup
-    x = linspace(0, tubeLength, numMeasurements);
-    y = extractHeights(data, INITIAL_BATCHES, index);
+    if SPECTRUM == 1
+        x = linspace(sf, ef, np);
+        y = extractWidths(data, INITIAL_BATCHES, index);
+        slider_lim = [0, tubeLength];
+        slider_step = 0.5;
+        slider_init = INITIAL_POINT;
+    else
+        x = linspace(0, tubeLength, numMeasurements);
+        y = extractHeights(data, INITIAL_BATCHES, index);
+        slider_lim = [1, np];
+        slider_step = 1;
+        slider_init = INITIAL_FREQUENCY;
+    end
 
     % Initial plot
     p = plot(ax, x, y, 'LineWidth', 2);
-    ax.XLim = [0, tubeLength];
-    title(ax, ['Frequency: ', num2str(INITIAL_FREQUENCY)]);
-
-    % 3. Create a UI slider component
-    txtField = uieditfield(g, 'text', ...
-        'Position', [100, 200, 150, 30], ...
-        'Value', num2str(INITIAL_FREQUENCY), ...
-        'ValueChangedFcn', @(txtField, event) disp(txtField.Value));
-    txtField.Layout.Row = 2;
-    txtField.Layout.Column =2;
+    title(ax, ['Frequency: ', num2str(slider_init)]);
 
     sld = uislider(g, ...
         'Position', [100, 50, 450, 3], ...
-        'Limits', [1, np], ...
-        'Value', INITIAL_FREQUENCY, ...
-        'Step', 1, ...
-        'ValueChangedFcn', @(sld, event) sliderUpdate(sld, txtField, p, ax, sf, ef, np, data, INITIAL_BATCHES));
+        'Limits', slider_lim, ...
+        'Value', slider_init, ...
+        'Step', slider_step, ...
+        'ValueChangedFcn', @(sld, event) sliderUpdate(sld, p, ax, sf, ef, np, data, INITIAL_BATCHES, SPECTRUM));
     sld.Layout.Row = 2;
     sld.Layout.Column = 1;
 end
 
-function updatePlot(p, data, index, INITIAL_BATCHES)
-    y = extractHeights(data, INITIAL_BATCHES, index);  % Update plot y-data
+function updatePlot(p, data, index, INITIAL_BATCHES, SPECTRUM)
+    if SPECTRUM == 1
+        y = extractWidths(data, INITIAL_BATCHES, index);
+    else
+        y = extractHeights(data, INITIAL_BATCHES, index);
+    end
+
     for i = 1:width(y)
         p(i).YData = y(:, i); 
     end
     drawnow;
 end
 
-function sliderUpdate(sld, txtField, p, ax, sf, ef, np, data, INITIAL_BATCHES)
-    index = sld.Value; % Get current slider value\
-    freq = sf + (index - 1) * (ef - sf) / (np - 1);
-    title(ax, ['Frequency: ', num2str(freq)]); % Update title
-    txtField.Value = num2str(freq);
-    updatePlot(p, data, index, INITIAL_BATCHES);
+function sliderUpdate(sld, p, ax, sf, ef, np, data, INITIAL_BATCHES, SPECTRUM)
+    if SPECTRUM == 1
+        index =  2 * sld.Value + 1; % Get current slider value\
+        title(ax, ['Spectrum @ ', num2str((index - 1)/ 2)]); % In spectrum at point title is point
+    else
+        index = sld.Value; % Get current slider value\
+        freq = sf + (index - 1) * (ef - sf) / (np - 1); % In frequency along the axis title is frequency
+        title(ax, ['Intensity along the slit @ ', num2str(freq)]); % Update title
+    end
+    updatePlot(p, data, index, INITIAL_BATCHES, SPECTRUM);
 end
