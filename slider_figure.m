@@ -42,7 +42,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     settings_spectrum{2} = [0, tubeLength];
     settings_spectrum{3} = 0.5;
     settings_spectrum{4} = INITIAL_POINT;
-    settings_spectrum{5} = ["Spectrum @ ", INITIAL_POINT, 'cm From Origin'];
+    settings_spectrum{5} = ['Spectrum @ ', num2str(INITIAL_POINT), ' [cm] from Origin'];
     settings_spectrum{6} = 2 * INITIAL_POINT; % Data index
     settings_spectrum{7} = linspace(sf, ef, np); % % X axis
     settings_spectrum{8} = extractWidths(y_vals, INITIAL_SCANS, settings_spectrum{6}); % Y axis
@@ -52,7 +52,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     settings_frequency{2} = [1, np]; % Slider lim
     settings_frequency{3} = 1; % Slider step
     settings_frequency{4} = INITIAL_FREQUENCY; % Slider init
-    settings_frequency{5} = ["Intensity along the Slit @ ", INITIAL_FREQUENCY, "hz"]; % Plot name
+    settings_frequency{5} = ['Intensity along the Slit @ ', num2str(INITIAL_FREQUENCY), ' [Hz]']; % Plot name
     settings_frequency{6} = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing); % Data index
     settings_frequency{7} = linspace(0, tubeLength, numMeasurements); % % X axis
     settings_frequency{8} = extractHeights(y_vals, INITIAL_SCANS, settings_frequency{6}); % Y axis
@@ -60,11 +60,19 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     plot_settings{1} = settings_frequency;
     plot_settings{2} = settings_spectrum;
     settings = plot_settings{SPECTRUM + 1};
+
     % Initial plot
-    p = plot(ax, settings{7}, settings{8}, 'LineWidth', 2);
+    plot(ax, settings{7}, settings{8}, 'LineWidth', 2);
     xlim(ax, settings{1});
-    title(ax, settings{5});
-    
+    info = cell(1, length(INITIAL_SCANS));
+    for i = 1:length(INITIAL_SCANS)
+        info{i} = ['Scan ' num2str(INITIAL_SCANS(i))];
+    end
+    legend(ax, info, 'Location', 'NorthWest', 'FontSize', 16);
+    title(ax, settings{5}, ...
+        'FontSize', 24, ...
+        'FontWeight','Bold', ...
+        'FontName', 'Times New Roman');
 
     sld = uislider(g, ...
         'Position', [100, 50, 450, 3], ...
@@ -148,6 +156,11 @@ function updatePlot(ax, data, index, plot_settings)
     settings = plot_settings{SPECTRUM + 1};
     cla(ax);
     plot(ax, settings{7}, y, 'LineWidth', 2);
+    info = cell(1, length(INITIAL_SCANS));
+    for i = 1:length(INITIAL_SCANS)
+        info{i} = ['Scan ' num2str(INITIAL_SCANS(i))];
+    end
+    legend(ax, info, 'Location', 'Northwest', 'FontSize', 16);
 end
 
 function sliderUpdate(sld, ax, sf, ef, np, data, plot_settings)
@@ -155,11 +168,11 @@ function sliderUpdate(sld, ax, sf, ef, np, data, plot_settings)
 
     if SPECTRUM == 1
         index =  2 * sld.Value + 1; % Get current slider value\
-        title(ax, ["Spectrum @ ", num2str((index - 1)/ 2)], "cm From Origin"); % In spectrum at point title is point
+        title(ax, ['Spectrum @ ', num2str((index - 1)/ 2), ' [cm] from Origin']); % In spectrum at point title is point
     else
         index = sld.Value; % Get current slider value\
         freq = sf + (index - 1) * (ef - sf) / (np - 1); % In frequency along the axis title is frequency
-        title(ax, ["Intensity along the Slit @ ", num2str(freq), "hz"]); % Update title
+        title(ax, ['Intensity along the Slit @ ', num2str(freq), ' [hz]']); % Update title
     end
     updatePlot(ax, data, index, plot_settings);
 end
@@ -177,7 +190,10 @@ function modifyLayout(ax, lbl, labelTexts, sld, plot_settings, data)
     sld.Step = settings{3};
 
     xlim(ax, settings{1});
-    title(ax, settings{5});
+    title(ax, settings{5}, ...
+        'FontSize', 24, ...
+        'FontWeight','Bold', ...
+        'FontName', 'Times New Roman');
 
     if SPECTRUM == 1
         index =  2 * sld.Value + 1; % Get current slider value\

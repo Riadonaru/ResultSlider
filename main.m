@@ -6,7 +6,7 @@ load("MultiScan_20260812_231408.mat");
 HALF_CM = 671; % Conversion constant [MotorStep --> cm]
 INITIAL_FREQUENCY = 10.2498; % Slider starting position for Intensity along the slit
 INITIAL_POINT = 20; % Slider starting position for Spectrum at point
-INITIAL_SCANS = [1 2]; % Batches to show on plot
+INITIAL_SCANS = [1]; % Batches to show on plot
 SPECTRUM = 0; % 1 = Spectrum at point, 0 = Intensity along the slit
 PHASE = 0; % 1 = Phase graph 0 = Magnitude graph
 
