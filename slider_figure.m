@@ -1,6 +1,6 @@
 function slider_figure(data, sf, ef, np, stepSize, numMeasurements)   
     
-    global HALF_CM INITIAL_FREQUENCY INITIAL_POINT INITIAL_SCANS SPECTRUM PHASE;
+    global HALF_CM INITIAL_FREQUENCY INITIAL_POINT DISPLAYED_SCANS SPECTRUM PHASE;
 
     fig_h = 800;
     fig_w = 1200;
@@ -45,7 +45,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     settings_spectrum{5} = ['Spectrum @ ', num2str(INITIAL_POINT), ' [cm] from Origin'];
     settings_spectrum{6} = 2 * INITIAL_POINT; % Data index
     settings_spectrum{7} = linspace(sf, ef, np); % % X axis
-    settings_spectrum{8} = extractWidths(y_vals, INITIAL_SCANS, settings_spectrum{6}); % Y axis
+    settings_spectrum{8} = extractWidths(y_vals, DISPLAYED_SCANS, settings_spectrum{6}); % Y axis
 
     % FREQUENCY DOMAIN SETTINGS
     settings_frequency{1} = [0 tubeLength]; % X lim
@@ -55,7 +55,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     settings_frequency{5} = ['Intensity along the Slit @ ', num2str(INITIAL_FREQUENCY), ' [Hz]']; % Plot name
     settings_frequency{6} = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing); % Data index
     settings_frequency{7} = linspace(0, tubeLength, numMeasurements); % % X axis
-    settings_frequency{8} = extractHeights(y_vals, INITIAL_SCANS, settings_frequency{6}); % Y axis
+    settings_frequency{8} = extractHeights(y_vals, DISPLAYED_SCANS, settings_frequency{6}); % Y axis
     
     plot_settings{1} = settings_frequency;
     plot_settings{2} = settings_spectrum;
@@ -64,11 +64,11 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     % Initial plot
     plot(ax, settings{7}, settings{8}, 'LineWidth', 2);
     xlim(ax, settings{1});
-    info = cell(1, length(INITIAL_SCANS));
-    for i = 1:length(INITIAL_SCANS)
-        info{i} = ['Scan ' num2str(INITIAL_SCANS(i))];
+    info = cell(1, length(DISPLAYED_SCANS));
+    for i = 1:length(DISPLAYED_SCANS)
+        info{i} = ['Scan ' num2str(DISPLAYED_SCANS(i))];
     end
-    legend(ax, info, 'Location', 'NorthWest', 'FontSize', 16);
+    legend(ax, info, 'Location', 'northeastoutside', 'FontSize', 16);
     title(ax, settings{5}, ...
         'FontSize', 24, ...
         'FontWeight','Bold', ...
@@ -131,7 +131,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
 
     for num = 1:length(y_vals)
         value = 0;
-        if any(INITIAL_SCANS == num)
+        if any(DISPLAYED_SCANS == num)
             value = 1;
         end
         uicheckbox('Text', ['  Scan' num2str(num)], ...
@@ -145,26 +145,26 @@ end
 
 
 function updatePlot(ax, data, index, plot_settings)
-    global SPECTRUM INITIAL_SCANS PHASE;
+    global SPECTRUM DISPLAYED_SCANS PHASE;
 
     y_vals = data{PHASE + 1};
     if SPECTRUM == 1
-        y = extractWidths(y_vals, INITIAL_SCANS, index);
+        y = extractWidths(y_vals, DISPLAYED_SCANS, index);
     else
-        y = extractHeights(y_vals, INITIAL_SCANS, index);
+        y = extractHeights(y_vals, DISPLAYED_SCANS, index);
     end
     settings = plot_settings{SPECTRUM + 1};
     cla(ax);
     plot(ax, settings{7}, y, 'LineWidth', 2);
-    info = cell(1, length(INITIAL_SCANS));
-    for i = 1:length(INITIAL_SCANS)
-        info{i} = ['Scan ' num2str(INITIAL_SCANS(i))];
+    info = cell(1, length(DISPLAYED_SCANS));
+    for i = 1:length(DISPLAYED_SCANS)
+        info{i} = ['Scan ' num2str(DISPLAYED_SCANS(i))];
     end
-    legend(ax, info, 'Location', 'Northwest', 'FontSize', 16);
+    legend(ax, info, 'Location', 'northeastoutside', 'FontSize', 16);
 end
 
 function sliderUpdate(sld, ax, sf, ef, np, data, plot_settings)
-    global SPECTRUM INITIAL_SCANS;
+    global SPECTRUM DISPLAYED_SCANS;
 
     if SPECTRUM == 1
         index =  2 * sld.Value + 1; % Get current slider value\
@@ -218,12 +218,12 @@ function modifyY(ax, lbl1, labelTexts1, data, plot_settings, sld)
 end
 
 function updateScan(src, ax, sld, data, plot_settings)
-    global INITIAL_SCANS SPECTRUM;
+    global DISPLAYED_SCANS SPECTRUM;
 
     if src.Value == 1
-        INITIAL_SCANS = [INITIAL_SCANS, src.UserData];
+        DISPLAYED_SCANS = [DISPLAYED_SCANS, src.UserData];
     else
-        INITIAL_SCANS(INITIAL_SCANS == src.UserData) = [];
+        DISPLAYED_SCANS(DISPLAYED_SCANS == src.UserData) = [];
     end
     
     if SPECTRUM == 1
