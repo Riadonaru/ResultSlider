@@ -1,6 +1,6 @@
 function slider_figure(data, sf, ef, np, stepSize, numMeasurements)   
     
-    global HALF_CM INITIAL_FREQUENCY INITIAL_POINT INITIAL_BATCHES SPECTRUM;
+    global HALF_CM INITIAL_FREQUENCY INITIAL_POINT INITIAL_BATCHES SPECTRUM PHASE;
 
     fig_h = 800;
     fig_w = 1200;
@@ -25,7 +25,8 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     ax.Layout.Row = 1;
     ax.Layout.Column = 1;
     
-    for num = 1:length(data)
+    y_vals = data{PHASE + 1};
+    for num = 1:length(y_vals)
         value = 0;
         if any(INITIAL_BATCHES == num)
             value = 1;
@@ -42,39 +43,45 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     tubeLength = (numMeasurements - 1) * diff;
 
     freq_spacing = (ef - sf) / (np-1);
-    % Initial data setup
-    if SPECTRUM == 1
-        index = 2 * INITIAL_POINT;
-        x = linspace(sf, ef, np);
-        y = extractWidths(data, INITIAL_BATCHES, index);
-        x_lim = [sf ef];
-        slider_lim = [0, tubeLength];
-        slider_step = 0.5;
-        slider_init = INITIAL_POINT;
-        name = ["Spectrum @ ", INITIAL_POINT, 'cm From Origin'];
-    else
-        index = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing);
-        x = linspace(0, tubeLength, numMeasurements);
-        y = extractHeights(data, INITIAL_BATCHES, index);
-        x_lim = [0 tubeLength];
-        slider_lim = [1, np];
-        slider_step = 1;
-        slider_init = INITIAL_FREQUENCY;
-        name = ["Intensity along the Slit @ ", INITIAL_FREQUENCY, "hz"];
-    end
+    plot_settings = {};
+    settings_spectrum = {};
+    settings_frequency = {};
+    
+    % SPECTRUM DOMAIN SETTINGS
+    settings_spectrum{1} = [sf ef];
+    settings_spectrum{2} = [0, tubeLength];
+    settings_spectrum{3} = 0.5;
+    settings_spectrum{4} = INITIAL_POINT;
+    settings_spectrum{5} = ["Spectrum @ ", INITIAL_POINT, 'cm From Origin'];
+    settings_spectrum{6} = 2 * INITIAL_POINT; % Data index
+    settings_spectrum{7} = linspace(sf, ef, np); % % X axis
+    settings_spectrum{8} = extractWidths(y_vals, INITIAL_BATCHES, settings_spectrum{6}); % Y axis
 
+    % FREQUENCY DOMAIN SETTINGS
+    settings_frequency{1} = [0 tubeLength]; % X lim
+    settings_frequency{2} = [1, np]; % Slider lim
+    settings_frequency{3} = 1; % Slider step
+    settings_frequency{4} = INITIAL_FREQUENCY; % Slider init
+    settings_frequency{5} = ["Intensity along the Slit @ ", INITIAL_FREQUENCY, "hz"]; % Plot name
+    settings_frequency{6} = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing); % Data index
+    settings_frequency{7} = linspace(0, tubeLength, numMeasurements); % % X axis
+    settings_frequency{8} = extractHeights(y_vals, INITIAL_BATCHES, settings_frequency{6}); % Y axis
+    
+    plot_settings{1} = settings_frequency;
+    plot_settings{2} = settings_spectrum;
+    settings = plot_settings{SPECTRUM + 1};
     % Initial plot
-    p = plot(ax, x, y, 'LineWidth', 2);
-    xlim(ax, x_lim);
-    title(ax, name);
+    p = plot(ax, settings{7}, settings{8}, 'LineWidth', 2);
+    xlim(ax, settings{1});
+    title(ax, settings{5});
     
 
     sld = uislider(g, ...
         'Position', [100, 50, 450, 3], ...
-        'Limits', slider_lim, ...
-        'Value', slider_init, ...
-        'Step', slider_step, ...
-        'ValueChangedFcn', @(sld, event) sliderUpdate(sld, p, ax, sf, ef, np, data, INITIAL_BATCHES, SPECTRUM));
+        'Limits', settings{2}, ...
+        'Value', settings{6}, ...
+        'Step', settings{3}, ...
+        'ValueChangedFcn', @(sld, event) sliderUpdate(sld, ax, sf, ef, np, data, plot_settings));
     sld.Layout.Row = 2;
     sld.Layout.Column = 1;
 
@@ -91,17 +98,32 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
         'FontSize', 16, ...
         'FontWeight', 'Bold', ...
         'Position', [50 fig_h - 180 200 50]);
+    
+    hiddenStates = {' ', ' '};
+    labelTexts = {'Intensity along the slit', 'Spectrum at point'};
+    lbl = uilabel(tab2, ...
+        'Text', labelTexts{SPECTRUM + 1}, ...
+        'Position', [105, fig_h - 220, 200, 20]);
 
-    uicheckbox('Text', '  Intensity along the slit', ...
-        'Parent', tab2, ...
-        'Value', ~SPECTRUM, ...
-        'ValueChangedFcn', @(src, event)modifyLayout(src, p, ax, data), ...
-        'Position', [50 fig_h - 230 200 50]);
+    uiswitch(tab2, 'slider', ...
+        'Value', 'Off', ...
+        'ValueChangedFcn', @(src, event)modifyLayout(ax, lbl, labelTexts, sld, plot_settings, data), ...
+        'Position', [50, fig_h - 220, 45, 20], ...
+        'Items', hiddenStates, ...
+        'Value', hiddenStates{SPECTRUM + 1});
 
-    uicheckbox('Text', '  Spectrum at point', ...
-        'Parent', tab2, ...
-        'Value', SPECTRUM, ...
-        'Position', [50 fig_h - 260 200 50]);
+    hiddenStates1 = {' ', ' '};
+    labelTexts1 = {'Magnitude', 'Phase'};
+    lbl1 = uilabel(tab2, ...
+        'Text', labelTexts1{PHASE + 1}, ...
+        'Position', [105, fig_h - 250, 200, 20]);
+
+    uiswitch(tab2, 'slider', ...
+        'Value', 'Off', ...
+        'ValueChangedFcn', @(src, event)modifyY(ax, lbl1, labelTexts1, data, plot_settings, sld), ...
+        'Position', [50, fig_h - 250, 45, 20], ...
+        'Items', hiddenStates1, ...
+        'Value', hiddenStates{PHASE + 1});
 
     uilabel('Text', 'Available Batches', ...
         'Parent', tab2, ...
@@ -111,20 +133,23 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
 end
 
 
-function updatePlot(p, data, index, INITIAL_BATCHES, SPECTRUM)
-    if SPECTRUM == 1
-        y = extractWidths(data, INITIAL_BATCHES, index);
-    else
-        y = extractHeights(data, INITIAL_BATCHES, index);
-    end
+function updatePlot(ax, data, index, plot_settings)
+    global SPECTRUM INITIAL_BATCHES PHASE;
 
-    for i = 1:width(y)
-        p(i).YData = y(:, i); 
+    y_vals = data{PHASE + 1};
+    if SPECTRUM == 1
+        y = extractWidths(y_vals, INITIAL_BATCHES, index);
+    else
+        y = extractHeights(y_vals, INITIAL_BATCHES, index);
     end
-    drawnow;
+    settings = plot_settings{SPECTRUM + 1};
+    cla(ax);
+    plot(ax, settings{7}, y, 'LineWidth', 2);
 end
 
-function sliderUpdate(sld, p, ax, sf, ef, np, data, INITIAL_BATCHES, SPECTRUM)
+function sliderUpdate(sld, ax, sf, ef, np, data, plot_settings)
+    global SPECTRUM INITIAL_BATCHES;
+
     if SPECTRUM == 1
         index =  2 * sld.Value + 1; % Get current slider value\
         title(ax, ["Spectrum @ ", num2str((index - 1)/ 2)], "cm From Origin"); % In spectrum at point title is point
@@ -133,15 +158,42 @@ function sliderUpdate(sld, p, ax, sf, ef, np, data, INITIAL_BATCHES, SPECTRUM)
         freq = sf + (index - 1) * (ef - sf) / (np - 1); % In frequency along the axis title is frequency
         title(ax, ["Intensity along the Slit @ ", num2str(freq), "hz"]); % Update title
     end
-    updatePlot(p, data, index, INITIAL_BATCHES, SPECTRUM);
+    updatePlot(ax, data, index, plot_settings);
 end
 
-function modifyLayout(src, p, ax, data)
-    if src.Value == 1
-        pass
+function modifyLayout(ax, lbl, labelTexts, sld, plot_settings, data)
+    global SPECTRUM;
+    
+    SPECTRUM = ~SPECTRUM;
+    lbl.Text = labelTexts(SPECTRUM + 1);
+    cla(ax);
+
+    settings = plot_settings{SPECTRUM + 1};
+    sld.Limits = settings{2};
+    sld.Value = settings{6};
+    sld.Step = settings{3};
+
+    xlim(ax, settings{1});
+    title(ax, settings{5});
+
+    if SPECTRUM == 1
+        index =  2 * sld.Value + 1; % Get current slider value\
     else
-        for k = 1:numel(p)
-            p(k).YData = NaN(size(p(k).YData));
-        end
+        index = sld.Value; % Get current slider value\
     end
+    updatePlot(ax, data, index, plot_settings);
+
+end
+
+function modifyY(ax, lbl1, labelTexts1, data, plot_settings, sld)
+    global SPECTRUM PHASE;
+
+    PHASE = ~PHASE;
+    lbl1.Text = labelTexts1(PHASE + 1);
+    if SPECTRUM == 1
+        index =  2 * sld.Value + 1; % Get current slider value\
+    else
+        index = sld.Value; % Get current slider value\
+    end
+    updatePlot(ax, data, index, plot_settings);
 end
