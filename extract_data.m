@@ -1,4 +1,6 @@
 function data = extract_data(sf, ef, np, Y_all)    
+    global PHASE
+    
     % Plot Intensity Along the Slit :
     numBatches = length(Y_all);
     data = cell(1, numBatches);
@@ -13,7 +15,11 @@ function data = extract_data(sf, ef, np, Y_all)
         if mod(num, 2) == 0
             Y = flip(Y);
         end
-        data{num} = abs(Y).^2;
+        if PHASE == 1
+            data{num} = abs(Y).^2;
+        else
+            data{num} = angle(Y);
+        end
     end
 end
 
