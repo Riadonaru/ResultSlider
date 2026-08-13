@@ -1,6 +1,6 @@
 function slider_figure(data, sf, ef, np, stepSize, numMeasurements)   
     
-    global HALF_CM INITIAL_FREQUENCY INITIAL_POINT INITIAL_BATCHES SPECTRUM PHASE;
+    global HALF_CM INITIAL_FREQUENCY INITIAL_POINT INITIAL_SCANS SPECTRUM PHASE;
 
     fig_h = 800;
     fig_w = 1200;
@@ -26,16 +26,6 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     ax.Layout.Column = 1;
     
     y_vals = data{PHASE + 1};
-    for num = 1:length(y_vals)
-        value = 0;
-        if any(INITIAL_BATCHES == num)
-            value = 1;
-        end
-        uicheckbox('Text', ['  Batch' num2str(num)], ...
-            'Parent', tab2, ...
-            'Value', value, ...
-            'Position', [550 fig_h - (200+30*num) 200 50]);
-    end
 
     %% ==================== Data View INIT ====================
     % Infer tube length and array index from experiment parameters
@@ -55,7 +45,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     settings_spectrum{5} = ["Spectrum @ ", INITIAL_POINT, 'cm From Origin'];
     settings_spectrum{6} = 2 * INITIAL_POINT; % Data index
     settings_spectrum{7} = linspace(sf, ef, np); % % X axis
-    settings_spectrum{8} = extractWidths(y_vals, INITIAL_BATCHES, settings_spectrum{6}); % Y axis
+    settings_spectrum{8} = extractWidths(y_vals, INITIAL_SCANS, settings_spectrum{6}); % Y axis
 
     % FREQUENCY DOMAIN SETTINGS
     settings_frequency{1} = [0 tubeLength]; % X lim
@@ -65,7 +55,7 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
     settings_frequency{5} = ["Intensity along the Slit @ ", INITIAL_FREQUENCY, "hz"]; % Plot name
     settings_frequency{6} = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing); % Data index
     settings_frequency{7} = linspace(0, tubeLength, numMeasurements); % % X axis
-    settings_frequency{8} = extractHeights(y_vals, INITIAL_BATCHES, settings_frequency{6}); % Y axis
+    settings_frequency{8} = extractHeights(y_vals, INITIAL_SCANS, settings_frequency{6}); % Y axis
     
     plot_settings{1} = settings_frequency;
     plot_settings{2} = settings_spectrum;
@@ -125,22 +115,35 @@ function slider_figure(data, sf, ef, np, stepSize, numMeasurements)
         'Items', hiddenStates1, ...
         'Value', hiddenStates{PHASE + 1});
 
-    uilabel('Text', 'Available Batches', ...
+    uilabel('Text', 'Available Scans', ...
         'Parent', tab2, ...
         'FontSize', 16, ...
         'FontWeight', 'Bold', ...
         'Position', [550 fig_h - 180 200 50]);
+
+    for num = 1:length(y_vals)
+        value = 0;
+        if any(INITIAL_SCANS == num)
+            value = 1;
+        end
+        uicheckbox('Text', ['  Scan' num2str(num)], ...
+            'Parent', tab2, ...
+            'Value', value, ...
+            'UserData', num, ...
+            'ValueChangedFcn', @(src, event)updateScan(src, ax, sld, data, plot_settings), ...
+            'Position', [550 fig_h - (200+30*num) 200 50]);
+    end
 end
 
 
 function updatePlot(ax, data, index, plot_settings)
-    global SPECTRUM INITIAL_BATCHES PHASE;
+    global SPECTRUM INITIAL_SCANS PHASE;
 
     y_vals = data{PHASE + 1};
     if SPECTRUM == 1
-        y = extractWidths(y_vals, INITIAL_BATCHES, index);
+        y = extractWidths(y_vals, INITIAL_SCANS, index);
     else
-        y = extractHeights(y_vals, INITIAL_BATCHES, index);
+        y = extractHeights(y_vals, INITIAL_SCANS, index);
     end
     settings = plot_settings{SPECTRUM + 1};
     cla(ax);
@@ -148,7 +151,7 @@ function updatePlot(ax, data, index, plot_settings)
 end
 
 function sliderUpdate(sld, ax, sf, ef, np, data, plot_settings)
-    global SPECTRUM INITIAL_BATCHES;
+    global SPECTRUM INITIAL_SCANS;
 
     if SPECTRUM == 1
         index =  2 * sld.Value + 1; % Get current slider value\
@@ -190,6 +193,23 @@ function modifyY(ax, lbl1, labelTexts1, data, plot_settings, sld)
 
     PHASE = ~PHASE;
     lbl1.Text = labelTexts1(PHASE + 1);
+    if SPECTRUM == 1
+        index =  2 * sld.Value + 1; % Get current slider value\
+    else
+        index = sld.Value; % Get current slider value\
+    end
+    updatePlot(ax, data, index, plot_settings);
+end
+
+function updateScan(src, ax, sld, data, plot_settings)
+    global INITIAL_SCANS SPECTRUM;
+
+    if src.Value == 1
+        INITIAL_SCANS = [INITIAL_SCANS, src.UserData];
+    else
+        INITIAL_SCANS(INITIAL_SCANS == src.UserData) = [];
+    end
+    
     if SPECTRUM == 1
         index =  2 * sld.Value + 1; % Get current slider value\
     else
