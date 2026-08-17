@@ -1,7 +1,7 @@
 function vars = loadData
     % List all available directories with data
-    prefix = "MeasureProject";
-    items = dir(strcat(prefix, "*"));
+    path = "data";
+    items = dir(fullfile(path, "MeasureProject*"));
     is_dir = [items.isdir];
     folders = items(is_dir);
     folderNames = {folders.name};
@@ -9,7 +9,7 @@ function vars = loadData
     matFiles = {};
     for folder = folderNames
         % Search for .mat files in target folders
-        search_pattern = fullfile(folder, "*.mat");
+        search_pattern = fullfile(path, folder, "*.mat");
         items = dir(search_pattern);
         files = items(~[items.isdir]);
         matFiles = [matFiles, {files.name}];
@@ -22,7 +22,7 @@ end
 
 function vars = loadVariables(matFiles)
     if length(matFiles) < 1
-        error('No .mat files found in the specified folders.');
+        error('MyApp:MissingConfig', 'No .mat files found in the specified folders.');
     end
     Y_all = {};
     numScans = 0;
