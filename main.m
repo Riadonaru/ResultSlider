@@ -1,6 +1,6 @@
 global HALF_CM INITIAL_FREQUENCY INITIAL_POINT DISPLAYED_SCANS SPECTRUM PHASE;
 
-load("MultiScan_20260812_231408.mat");
+load("MultiScan_20260817_121342.mat");
 
 % Global Settings
 HALF_CM = 671; % Conversion constant [MotorStep --> cm]
