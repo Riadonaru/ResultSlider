@@ -1,11 +1,16 @@
-function slider_figure(data, sf, ef, np, stepSize, numMeasurements)   
+function slider_figure(vars)
     
     global HALF_CM INITIAL_FREQUENCY INITIAL_POINT DISPLAYED_SCANS SPECTRUM PHASE;
+    
+    data = vars.data;
+    sf = vars.sf;
+    ef = vars.ef;
+    np = vars.np;
+    stepSize = vars.stepSize;
+    numMeasurements = vars.numMeasurements;
 
     fig_h = 800;
     fig_w = 1200;
-    
-    % 1. Create a UI figure window
     fig = uifigure('Name', 'Results', 'Position', [100, 100, fig_w, fig_h]);
 
     % 2. Create the tab group as a child of the figure
