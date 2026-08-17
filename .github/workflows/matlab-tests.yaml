@@ -21,3 +21,6 @@ jobs:
       # 3. Find and run all tests
       - name: Run tests
         uses: matlab-actions/run-tests@v3
+        with:
+          # This adds the 'src' folder to the MATLAB path before testing
+          source-folder: src
