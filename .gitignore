@@ -1,4 +1,4 @@
 *.asv
 *.mat
-./data/*
 *.DS_Store
+data/*
