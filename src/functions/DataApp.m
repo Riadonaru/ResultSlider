@@ -10,7 +10,8 @@ classdef DataApp < handle
         DISPLAYED_SCANS = [1]; % Batches to show on plot
         PLOT_TYPE = 0; % 1 = Phase graph 0 = Magnitude graph
         PLOT_SET = 0; % 1 = Spectrum at point, 0 = Intensity along the slit
-        PlotColor = 'blue'
+        Label1Texts = {'Intensity along the slit', 'Spectrum at point'};
+        Label2Texts = {'Magnitude', 'Phase'};
         StartFreq
         EndFreq
         NumPoints
@@ -118,29 +119,26 @@ classdef DataApp < handle
                 'Position', [50 obj.FigH - 180 200 50]);
 
             hiddenStates = {' ', ' '};
-            labelTexts = {'Intensity along the slit', 'Spectrum at point'};
             obj.Label1 = uilabel(obj.Tab2, ...
-                'Text', labelTexts{obj.PLOT_SET + 1}, ...
+                'Text', obj.Label1Texts{obj.PLOT_SET + 1}, ...
                 'Position', [105, obj.FigH - 220, 200, 20]);
 
             uiswitch(obj.Tab2, 'slider', ...
                 'Value', 'Off', ...
-                'ValueChangedFcn', @(src, event) obj.modifyLayout(labelTexts), ...
+                'ValueChangedFcn', @(src, event) obj.modifyLayout(), ...
                 'Position', [50, obj.FigH - 220, 45, 20], ...
                 'Items', hiddenStates, ...
                 'Value', hiddenStates{obj.PLOT_SET + 1});
 
-            hiddenStates1 = {' ', ' '};
-            labelTexts1 = {'Magnitude', 'Phase'};
             obj.Label2 = uilabel(obj.Tab2, ...
-                'Text', labelTexts1{obj.PLOT_TYPE + 1}, ...
+                'Text', obj.Label2Texts{obj.PLOT_TYPE + 1}, ...
                 'Position', [105, obj.FigH - 250, 200, 20]);
 
             uiswitch(obj.Tab2, 'slider', ...
                 'Value', 'Off', ...
-                'ValueChangedFcn', @(src, event) obj.modifyY(labelTexts1), ...
+                'ValueChangedFcn', @(src, event) obj.modifyY(), ...
                 'Position', [50, obj.FigH - 250, 45, 20], ...
-                'Items', hiddenStates1, ...
+                'Items', hiddenStates, ...
                 'Value', hiddenStates{obj.PLOT_TYPE + 1});
 
             uilabel('Text', 'Available Scans', ...
@@ -218,10 +216,10 @@ classdef DataApp < handle
 
 
         % Callback for first toggle button
-        function modifyLayout(obj, labelTexts)
+        function modifyLayout(obj)
 
             obj.PLOT_SET = ~obj.PLOT_SET;
-            obj.Label1.Text = labelTexts(obj.PLOT_SET + 1);
+            obj.Label1.Text = obj.Label1Texts(obj.PLOT_SET + 1);
             cla(obj.Axis);
 
             settings = obj.Settings{obj.PLOT_SET + 1};
@@ -246,10 +244,10 @@ classdef DataApp < handle
 
 
         % Callback for second toggle button
-        function modifyY(obj, labelTexts1)
+        function modifyY(obj)
 
             obj.PLOT_TYPE = ~obj.PLOT_TYPE;
-            obj.Label2.Text = labelTexts1(obj.PLOT_TYPE + 1);
+            obj.Label2.Text = obj.Label2Texts(obj.PLOT_TYPE + 1);
             if obj.PLOT_SET == 1
                 index =  2 * obj.Slider.Value + 1; % Get current slider value\
             else
