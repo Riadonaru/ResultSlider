@@ -1,32 +1,38 @@
 classdef DataApp < handle
     % The '< handle' part is critical so updates modify the original object
 
-    properties
-        % These replace your global variables.
-        % Every function in the class can read and write to these.
+    properties (SetAccess = private)
         PlotColor = 'blue'
-        Vars
-        FigureHandle
+        StartFreq
+        EndFreq
+        NumPoints
+        StepSize
+        NumMeasurements
+        Data
+    end
+    
+    properties (Access = public)
+        % Anything can read and write to these normally
+        UILabel
     end
 
     methods
         % 1. The Constructor
         % This runs once when you first create the object.
         function obj = DataApp(vars)
-            obj.Vars = vars;
-            % You could also initialize your UI window here
+            obj.StartFreq = vars.sf;
+            obj.EndFreq = vars.ef;
+            obj.NumPoints = vars.np;
+            obj.StepSize = vars.stepSize;
+            obj.NumMeasurements = vars.numMeasurements;
+            obj.Data = vars.data;
         end
 
         function show(obj)
 
             global HALF_CM INITIAL_FREQUENCY INITIAL_POINT DISPLAYED_SCANS SPECTRUM PHASE;
 
-            data = obj.Vars.data;
-            sf = obj.Vars.sf;
-            ef = obj.Vars.ef;
-            np = obj.Vars.np;
-            stepSize = obj.Vars.stepSize;
-            numMeasurements = obj.Vars.numMeasurements;
+            data = obj.Data;
 
             fig_h = 800;
             fig_w = 1200;
@@ -49,36 +55,36 @@ classdef DataApp < handle
             ax.Layout.Row = 1;
             ax.Layout.Column = 1;
 
-            y_vals = data{PHASE + 1};
+            y_vals = obj.Data{PHASE + 1};
 
             %% ==================== Data View INIT ====================
             % Infer tube length and array index from experiment parameters
-            diff = (stepSize/HALF_CM) * 0.5; % Conversion stepSize ---> [cm]
-            tubeLength = (numMeasurements - 1) * diff;
+            diff = (obj.StepSize/HALF_CM) * 0.5; % Conversion stepSize ---> [cm]
+            tubeLength = (obj.NumMeasurements - 1) * diff;
 
-            freq_spacing = (ef - sf) / (np-1);
+            freq_spacing = (obj.EndFreq - obj.StartFreq) / (obj.NumPoints-1);
             plot_settings = {};
             settings_spectrum = {};
             settings_frequency = {};
 
             % SPECTRUM DOMAIN SETTINGS
-            settings_spectrum{1} = [sf ef];
+            settings_spectrum{1} = [obj.StartFreq obj.EndFreq];
             settings_spectrum{2} = [0, tubeLength];
             settings_spectrum{3} = 0.5;
             settings_spectrum{4} = INITIAL_POINT;
             settings_spectrum{5} = ['Spectrum @ ', num2str(INITIAL_POINT), ' [cm] from Origin'];
             settings_spectrum{6} = 2 * INITIAL_POINT; % Data index
-            settings_spectrum{7} = linspace(sf, ef, np); % % X axis
+            settings_spectrum{7} = linspace(obj.StartFreq, obj.EndFreq, obj.NumPoints); % % X axis
             settings_spectrum{8} = extractWidths(y_vals, DISPLAYED_SCANS, settings_spectrum{6}); % Y axis
 
             % FREQUENCY DOMAIN SETTINGS
             settings_frequency{1} = [0 tubeLength]; % X lim
-            settings_frequency{2} = [1, np]; % Slider lim
+            settings_frequency{2} = [1, obj.NumPoints]; % Slider lim
             settings_frequency{3} = 1; % Slider step
             settings_frequency{4} = INITIAL_FREQUENCY; % Slider init
             settings_frequency{5} = ['Intensity along the Slit @ ', num2str(INITIAL_FREQUENCY), ' [Hz]']; % Plot name
-            settings_frequency{6} = 1 + round((INITIAL_FREQUENCY - sf)/freq_spacing); % Data index
-            settings_frequency{7} = linspace(0, tubeLength, numMeasurements); % % X axis
+            settings_frequency{6} = 1 + round((INITIAL_FREQUENCY - obj.StartFreq)/freq_spacing); % Data index
+            settings_frequency{7} = linspace(0, tubeLength, obj.NumMeasurements); % % X axis
             settings_frequency{8} = extractHeights(y_vals, DISPLAYED_SCANS, settings_frequency{6}); % Y axis
 
             plot_settings{1} = settings_frequency;
@@ -103,7 +109,7 @@ classdef DataApp < handle
                 'Limits', settings{2}, ...
                 'Value', settings{6}, ...
                 'Step', settings{3}, ...
-                'ValueChangedFcn', @(sld, event) obj.sliderUpdate(sld, ax, sf, ef, np, data, plot_settings));
+                'ValueChangedFcn', @(sld, event) obj.sliderUpdate(sld, ax, plot_settings));
             sld.Layout.Row = 2;
             sld.Layout.Column = 1;
 
@@ -129,7 +135,7 @@ classdef DataApp < handle
 
             uiswitch(tab2, 'slider', ...
                 'Value', 'Off', ...
-                'ValueChangedFcn', @(src, event) obj.modifyLayout(ax, lbl, labelTexts, sld, plot_settings, data), ...
+                'ValueChangedFcn', @(src, event) obj.modifyLayout(ax, lbl, labelTexts, sld, plot_settings), ...
                 'Position', [50, fig_h - 220, 45, 20], ...
                 'Items', hiddenStates, ...
                 'Value', hiddenStates{SPECTRUM + 1});
@@ -142,7 +148,7 @@ classdef DataApp < handle
 
             uiswitch(tab2, 'slider', ...
                 'Value', 'Off', ...
-                'ValueChangedFcn', @(src, event) obj.modifyY(ax, lbl1, labelTexts1, data, plot_settings, sld), ...
+                'ValueChangedFcn', @(src, event) obj.modifyY(ax, lbl1, labelTexts1, plot_settings, sld), ...
                 'Position', [50, fig_h - 250, 45, 20], ...
                 'Items', hiddenStates1, ...
                 'Value', hiddenStates{PHASE + 1});
@@ -162,16 +168,16 @@ classdef DataApp < handle
                     'Parent', tab2, ...
                     'Value', value, ...
                     'UserData', num, ...
-                    'ValueChangedFcn', @(src, event) obj.updateScan(src, ax, sld, data, plot_settings), ...
+                    'ValueChangedFcn', @(src, event) obj.updateScan(src, ax, sld, plot_settings), ...
                     'Position', [550 fig_h - (200+30*num) 200 50]);
             end
         end
 
         % Called each time a plot update is required
-        function updatePlot(obj, ax, data, index, plot_settings)
+        function updatePlot(obj, ax, index, plot_settings)
             global SPECTRUM DISPLAYED_SCANS PHASE;
 
-            y_vals = data{PHASE + 1};
+            y_vals = obj.Data{PHASE + 1};
             if SPECTRUM == 1
                 y = extractWidths(y_vals, DISPLAYED_SCANS, index);
             else
@@ -189,7 +195,7 @@ classdef DataApp < handle
 
 
         % Handler for the slider
-        function sliderUpdate(obj, sld, ax, sf, ef, np, data, plot_settings)
+        function sliderUpdate(obj, sld, ax, plot_settings)
 
             global SPECTRUM DISPLAYED_SCANS;
 
@@ -198,15 +204,15 @@ classdef DataApp < handle
                 title(ax, ['Spectrum @ ', num2str((index - 1)/ 2), ' [cm] from Origin']); % In spectrum at point title is point
             else
                 index = sld.Value; % Get current slider value\
-                freq = sf + (index - 1) * (ef - sf) / (np - 1); % In frequency along the axis title is frequency
+                freq = obj.StartFreq + (index - 1) * (obj.EndFreq - obj.StartFreq) / (obj.NumPoints - 1); % In frequency along the axis title is frequency
                 title(ax, ['Intensity along the Slit @ ', num2str(freq), ' [hz]']); % Update title
             end
-            updatePlot(obj, ax, data, index, plot_settings);
+            updatePlot(obj, ax, index, plot_settings);
         end
 
 
         % Callback for first toggle button
-        function modifyLayout(obj, ax, lbl, labelTexts, sld, plot_settings, data)
+        function modifyLayout(obj, ax, lbl, labelTexts, sld, plot_settings)
             global SPECTRUM;
 
             SPECTRUM = ~SPECTRUM;
@@ -229,13 +235,13 @@ classdef DataApp < handle
             else
                 index = sld.Value;
             end
-            updatePlot(obj, ax, data, index, plot_settings);
+            updatePlot(obj, ax, index, plot_settings);
 
         end
 
 
         % Callback for second toggle button
-        function modifyY(obj, ax, lbl1, labelTexts1, data, plot_settings, sld)
+        function modifyY(obj, ax, lbl1, labelTexts1, plot_settings, sld)
             global SPECTRUM PHASE;
 
             PHASE = ~PHASE;
@@ -245,10 +251,10 @@ classdef DataApp < handle
             else
                 index = sld.Value; % Get current slider value\
             end
-            updatePlot(obj, ax, data, index, plot_settings);
+            updatePlot(obj, ax, index, plot_settings);
         end
 
-        function updateScan(obj, src, ax, sld, data, plot_settings)
+        function updateScan(obj, src, ax, sld, plot_settings)
             global DISPLAYED_SCANS SPECTRUM;
 
             if src.Value == 1
@@ -262,7 +268,7 @@ classdef DataApp < handle
             else
                 index = sld.Value; % Get current slider value\
             end
-            updatePlot(obj, ax, data, index, plot_settings);
+            updatePlot(obj, ax, index, plot_settings);
         end
     end
 end
