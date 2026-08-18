@@ -1,4 +1,4 @@
-function vars = loadData
+function vars = LoadData
     % List all available directories with data
     path = "data";
     items = dir(fullfile(path, "MeasureProject*"));
