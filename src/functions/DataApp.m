@@ -211,7 +211,7 @@ classdef DataApp < handle
                 freq = obj.StartFreq + (index - 1) * (obj.EndFreq - obj.StartFreq) / (obj.NumPoints - 1); % In frequency along the axis title is frequency
                 title(obj.Axis, ['Intensity along the Slit @ ', num2str(freq), ' [hz]']); % Update title
             end
-            updatePlot(obj, index);
+            obj.updatePlot(index);
         end
 
 
@@ -238,7 +238,7 @@ classdef DataApp < handle
             else
                 index = obj.Slider.Value;
             end
-            updatePlot(obj, index);
+            obj.updatePlot(index);
 
         end
 
@@ -253,7 +253,7 @@ classdef DataApp < handle
             else
                 index = obj.Slider.Value; % Get current slider value\
             end
-            updatePlot(obj, index);
+            obj.updatePlot(index);
         end
 
         function updateScan(obj, src)
@@ -269,7 +269,7 @@ classdef DataApp < handle
             else
                 index = obj.Slider.Value; % Get current slider value\
             end
-            updatePlot(obj, index);
+            obj.updatePlot(index);
         end
     end
 end
