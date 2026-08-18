@@ -4,7 +4,7 @@ function y = ExtractWidths(data, scans, index)
         height = height + 1;
     end
     y = zeros(width(data{1}), height);
-    for batch = scans
+    for batch = 1:length(scans)
         y_vals = data{batch};
         y(:, batch) = y_vals(index, :).';
     end
