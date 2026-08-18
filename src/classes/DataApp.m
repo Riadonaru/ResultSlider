@@ -76,7 +76,7 @@ classdef DataApp < handle
             SpectrumSettingsInitial.PlotName = ['Spectrum @ ', num2str(obj.INITIAL_POINT), ' [cm] from Origin'];
             SpectrumSettingsInitial.SliderInit = 2 * obj.INITIAL_POINT;
             SpectrumSettingsInitial.XData = linspace(obj.StartFreq, obj.EndFreq, obj.NumPoints);
-            SpectrumSettingsInitial.YData = extractWidths(y_vals, obj.DISPLAYED_SCANS, SpectrumSettingsInitial.SliderInit);
+            SpectrumSettingsInitial.YData = ExtractWidths(y_vals, obj.DISPLAYED_SCANS, SpectrumSettingsInitial.SliderInit);
 
             % FREQUENCY DOMAIN SETTINGS
             FrequencySettingsInitial = Settings();
@@ -86,7 +86,7 @@ classdef DataApp < handle
             FrequencySettingsInitial.PlotName = ['Intensity along the Slit @ ', num2str(obj.INITIAL_FREQUENCY), ' [Hz]'];
             FrequencySettingsInitial.SliderInit = 1 + round((obj.INITIAL_FREQUENCY - obj.StartFreq)/freq_spacing);
             FrequencySettingsInitial.XData = linspace(0, tubeLength, obj.NumMeasurements);
-            FrequencySettingsInitial.YData = extractHeights(y_vals, obj.DISPLAYED_SCANS, FrequencySettingsInitial.SliderInit);
+            FrequencySettingsInitial.YData = ExtractHeights(y_vals, obj.DISPLAYED_SCANS, FrequencySettingsInitial.SliderInit);
 
 
             obj.Settings{1} = FrequencySettingsInitial;
@@ -159,7 +159,7 @@ classdef DataApp < handle
 
         end
 
-        function show(obj)
+        function ShowDefault(obj)
             settings = obj.Settings{obj.PLOT_SET + 1};
 
             % Initial plot
@@ -182,9 +182,9 @@ classdef DataApp < handle
 
             y_vals = obj.Data{obj.PLOT_TYPE + 1};
             if obj.PLOT_SET == 1
-                y = extractWidths(y_vals, obj.DISPLAYED_SCANS, index);
+                y = ExtractWidths(y_vals, obj.DISPLAYED_SCANS, index);
             else
-                y = extractHeights(y_vals, obj.DISPLAYED_SCANS, index);
+                y = ExtractHeights(y_vals, obj.DISPLAYED_SCANS, index);
             end
             settings = obj.Settings{obj.PLOT_SET + 1};
             cla(obj.Axis);
@@ -252,7 +252,8 @@ classdef DataApp < handle
             end
             obj.updatePlot(index);
         end
-
+        
+        % Callback for Checkboxes
         function updateScan(obj, src)
 
             if src.Value == 1

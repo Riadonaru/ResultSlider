@@ -1,5 +1,2 @@
-VARS = loadData;
-
-
-app = DataApp(VARS);
-app.show();
+app = DataApp(LoadData);
+app.ShowDefault();

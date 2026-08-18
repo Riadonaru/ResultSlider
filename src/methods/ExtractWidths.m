@@ -1,4 +1,4 @@
-function y = extractWidths(data, scans, index)
+function y = ExtractWidths(data, scans, index)
     height = length(scans);
     if height == 0
         height = height + 1;
