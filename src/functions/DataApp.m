@@ -27,7 +27,8 @@ classdef DataApp < handle
         GridLayout
         Axis
         Slider
-        SettingsLabel
+        Label1
+        Label2
         Settings
 
     end
@@ -118,26 +119,26 @@ classdef DataApp < handle
 
             hiddenStates = {' ', ' '};
             labelTexts = {'Intensity along the slit', 'Spectrum at point'};
-            lbl = uilabel(obj.Tab2, ...
+            obj.Label1 = uilabel(obj.Tab2, ...
                 'Text', labelTexts{obj.PLOT_SET + 1}, ...
                 'Position', [105, obj.FigH - 220, 200, 20]);
 
             uiswitch(obj.Tab2, 'slider', ...
                 'Value', 'Off', ...
-                'ValueChangedFcn', @(src, event) obj.modifyLayout(lbl, labelTexts), ...
+                'ValueChangedFcn', @(src, event) obj.modifyLayout(labelTexts), ...
                 'Position', [50, obj.FigH - 220, 45, 20], ...
                 'Items', hiddenStates, ...
                 'Value', hiddenStates{obj.PLOT_SET + 1});
 
             hiddenStates1 = {' ', ' '};
             labelTexts1 = {'Magnitude', 'Phase'};
-            lbl1 = uilabel(obj.Tab2, ...
+            obj.Label2 = uilabel(obj.Tab2, ...
                 'Text', labelTexts1{obj.PLOT_TYPE + 1}, ...
                 'Position', [105, obj.FigH - 250, 200, 20]);
 
             uiswitch(obj.Tab2, 'slider', ...
                 'Value', 'Off', ...
-                'ValueChangedFcn', @(src, event) obj.modifyY(lbl1, labelTexts1), ...
+                'ValueChangedFcn', @(src, event) obj.modifyY(labelTexts1), ...
                 'Position', [50, obj.FigH - 250, 45, 20], ...
                 'Items', hiddenStates1, ...
                 'Value', hiddenStates{obj.PLOT_TYPE + 1});
@@ -217,10 +218,10 @@ classdef DataApp < handle
 
 
         % Callback for first toggle button
-        function modifyLayout(obj, lbl, labelTexts)
+        function modifyLayout(obj, labelTexts)
 
             obj.PLOT_SET = ~obj.PLOT_SET;
-            lbl.Text = labelTexts(obj.PLOT_SET + 1);
+            obj.Label1.Text = labelTexts(obj.PLOT_SET + 1);
             cla(obj.Axis);
 
             settings = obj.Settings{obj.PLOT_SET + 1};
@@ -245,10 +246,10 @@ classdef DataApp < handle
 
 
         % Callback for second toggle button
-        function modifyY(obj, lbl1, labelTexts1)
+        function modifyY(obj, labelTexts1)
 
             obj.PLOT_TYPE = ~obj.PLOT_TYPE;
-            lbl1.Text = labelTexts1(obj.PLOT_TYPE + 1);
+            obj.Label2.Text = labelTexts1(obj.PLOT_TYPE + 1);
             if obj.PLOT_SET == 1
                 index =  2 * obj.Slider.Value + 1; % Get current slider value\
             else
