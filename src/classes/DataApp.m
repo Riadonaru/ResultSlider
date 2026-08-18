@@ -30,7 +30,7 @@ classdef DataApp < handle
         Slider
         Label1
         Label2
-        Settings
+        Settings = {}
 
     end
 
@@ -66,42 +66,39 @@ classdef DataApp < handle
 
             freq_spacing = (obj.EndFreq - obj.StartFreq) / (obj.NumPoints-1);
 
-            y_vals = obj.Data{obj.PLOT_TYPE + 1};
-
-            obj.Settings = {};
-            settings_spectrum = {};
-            settings_frequency = {};
+            y_vals = obj.Data{obj.PLOT_TYPE + 1};  
 
             % SPECTRUM DOMAIN SETTINGS
-            settings_spectrum{1} = [obj.StartFreq obj.EndFreq];
-            settings_spectrum{2} = [0, tubeLength];
-            settings_spectrum{3} = 0.5;
-            settings_spectrum{4} = obj.INITIAL_POINT;
-            settings_spectrum{5} = ['Spectrum @ ', num2str(obj.INITIAL_POINT), ' [cm] from Origin'];
-            settings_spectrum{6} = 2 * obj.INITIAL_POINT; % Data index
-            settings_spectrum{7} = linspace(obj.StartFreq, obj.EndFreq, obj.NumPoints); % % X axis
-            settings_spectrum{8} = extractWidths(y_vals, obj.DISPLAYED_SCANS, settings_spectrum{6}); % Y axis
+            SpectrumSettingsInitial = Settings();
+            SpectrumSettingsInitial.XLim = [obj.StartFreq obj.EndFreq];
+            SpectrumSettingsInitial.SliderLim = [0, tubeLength];
+            SpectrumSettingsInitial.SliderStep = 0.5;
+            SpectrumSettingsInitial.PlotName = ['Spectrum @ ', num2str(obj.INITIAL_POINT), ' [cm] from Origin'];
+            SpectrumSettingsInitial.SliderInit = 2 * obj.INITIAL_POINT;
+            SpectrumSettingsInitial.XData = linspace(obj.StartFreq, obj.EndFreq, obj.NumPoints);
+            SpectrumSettingsInitial.YData = extractWidths(y_vals, obj.DISPLAYED_SCANS, SpectrumSettingsInitial.SliderInit);
 
             % FREQUENCY DOMAIN SETTINGS
-            settings_frequency{1} = [0 tubeLength]; % X lim
-            settings_frequency{2} = [1, obj.NumPoints]; % Slider lim
-            settings_frequency{3} = 1; % Slider step
-            settings_frequency{4} = obj.INITIAL_FREQUENCY; % Slider init
-            settings_frequency{5} = ['Intensity along the Slit @ ', num2str(obj.INITIAL_FREQUENCY), ' [Hz]']; % Plot name
-            settings_frequency{6} = 1 + round((obj.INITIAL_FREQUENCY - obj.StartFreq)/freq_spacing); % Data index
-            settings_frequency{7} = linspace(0, tubeLength, obj.NumMeasurements); % % X axis
-            settings_frequency{8} = extractHeights(y_vals, obj.DISPLAYED_SCANS, settings_frequency{6}); % Y axis
+            FrequencySettingsInitial = Settings();
+            FrequencySettingsInitial.XLim = [0 tubeLength];
+            FrequencySettingsInitial.SliderLim = [1, obj.NumPoints];
+            FrequencySettingsInitial.SliderStep = 1;
+            FrequencySettingsInitial.PlotName = ['Intensity along the Slit @ ', num2str(obj.INITIAL_FREQUENCY), ' [Hz]'];
+            FrequencySettingsInitial.SliderInit = 1 + round((obj.INITIAL_FREQUENCY - obj.StartFreq)/freq_spacing);
+            FrequencySettingsInitial.XData = linspace(0, tubeLength, obj.NumMeasurements);
+            FrequencySettingsInitial.YData = extractHeights(y_vals, obj.DISPLAYED_SCANS, FrequencySettingsInitial.SliderInit);
 
-            obj.Settings{1} = settings_frequency;
-            obj.Settings{2} = settings_spectrum;
+
+            obj.Settings{1} = FrequencySettingsInitial;
+            obj.Settings{2} = SpectrumSettingsInitial;
 
             settings = obj.Settings{obj.PLOT_SET + 1};
 
             obj.Slider = uislider(obj.GridLayout, ...
                 'Position', [100, 50, 450, 3], ...
-                'Limits', settings{2}, ...
-                'Value', settings{6}, ...
-                'Step', settings{3}, ...
+                'Limits', settings.SliderLim, ...
+                'Value', settings.SliderInit, ...
+                'Step', settings.SliderStep, ...
                 'ValueChangedFcn', @(src, event) obj.sliderUpdate());
             obj.Slider.Layout.Row = 2;
             obj.Slider.Layout.Column = 1;
@@ -166,14 +163,14 @@ classdef DataApp < handle
             settings = obj.Settings{obj.PLOT_SET + 1};
 
             % Initial plot
-            plot(obj.Axis, settings{7}, settings{8}, 'LineWidth', 2);
-            xlim(obj.Axis, settings{1});
+            plot(obj.Axis, settings.XData, settings.YData, 'LineWidth', 2);
+            xlim(obj.Axis, settings.XLim);
             info = cell(1, length(obj.DISPLAYED_SCANS));
             for i = 1:length(obj.DISPLAYED_SCANS)
                 info{i} = ['Scan ' num2str(obj.DISPLAYED_SCANS(i))];
             end
             legend(obj.Axis, info, 'Location', 'northeastoutside', 'FontSize', 16);
-            title(obj.Axis, settings{5}, ...
+            title(obj.Axis, settings.PlotName, ...
                 'FontSize', 24, ...
                 'FontWeight','Bold', ...
                 'FontName', 'Times New Roman');
@@ -191,7 +188,7 @@ classdef DataApp < handle
             end
             settings = obj.Settings{obj.PLOT_SET + 1};
             cla(obj.Axis);
-            plot(obj.Axis, settings{7}, y, 'LineWidth', 2);
+            plot(obj.Axis, settings.XData, y, 'LineWidth', 2);
             info = cell(1, length(obj.DISPLAYED_SCANS));
             for i = 1:length(obj.DISPLAYED_SCANS)
                 info{i} = ['Scan ' num2str(obj.DISPLAYED_SCANS(i))];
@@ -223,12 +220,12 @@ classdef DataApp < handle
             cla(obj.Axis);
 
             settings = obj.Settings{obj.PLOT_SET + 1};
-            obj.Slider.Limits = settings{2};
-            obj.Slider.Value = settings{6};
-            obj.Slider.Step = settings{3};
+            obj.Slider.Limits = settings.SliderLim;
+            obj.Slider.Value = settings.SliderInit;
+            obj.Slider.Step = settings.SliderStep;
 
-            xlim(obj.Axis, settings{1});
-            title(obj.Axis, settings{5}, ...
+            xlim(obj.Axis, settings.XLim);
+            title(obj.Axis, settings.PlotName, ...
                 'FontSize', 24, ...
                 'FontWeight','Bold', ...
                 'FontName', 'Times New Roman');

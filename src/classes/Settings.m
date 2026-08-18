@@ -1,12 +1,11 @@
 classdef Settings
 
-    properties (SetAccess = private)
+    properties
        XLim
        SliderLim
        SliderStep
-       SliderInit
        PlotName
-       DataIndex
+       SliderInit
        XData
        YData
     end
