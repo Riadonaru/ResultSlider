@@ -10,4 +10,5 @@ DISPLAYED_SCANS = [1]; % Batches to show on plot
 SPECTRUM = 0; % 1 = Spectrum at point, 0 = Intensity along the slit
 PHASE = 0; % 1 = Phase graph 0 = Magnitude graph
 
-sliderFigure(VARS);
+app = DataApp(VARS);
+app.show();
